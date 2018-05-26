@@ -63,13 +63,35 @@ function wxmsg(req, res) {
     req.on('end', function () {
       const r_ToUserName = body.match(/<ToUserName><\!\[CDATA\[(.*)\]\]><\/ToUserName>/)[1];
       const r_FromUserName = body.match(/<FromUserName><\!\[CDATA\[(.*)\]\]><\/FromUserName>/)[1];
-      const r_Content = body.match(/<Content><\!\[CDATA\[(.*)\]\]><\/Content>/)[1];
-      const r_CreateTime = body.match(/<CreateTime><\!\[CDATA\[(.*)\]\]><\/CreateTime>/)[1];
+      const r_MsgType = body.match(/<MsgType><\!\[CDATA\[(.*)\]\]><\/MsgType>/)[1];
+      const r_CreateTime = body.match(/<CreateTime>(.*)<\/CreateTime>/)[1];
+      const r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
 
-      console.log(`[recive text] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
+
+      if (r_MsgType === 'text') {
+        const r_Content = body.match(/<Content><\!\[CDATA\[(.*)\]\]><\/Content>/)[1];
+        console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
+      } else if(r_MsgType === 'image') {
+        const r_PicUrl = body.match(/<PicUrl><\!\[CDATA\[(.*)\]\]><\/PicUrl>/)[1];
+        const r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+        console.log(`[recive ${r_MsgType}] ${r_PicUrl} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+      } else if(r_MsgType === 'video') {
+        const r_ThumbMediaId = body.match(/<ThumbMediaId><\!\[CDATA\[(.*)\]\]><\/ThumbMediaId>/)[1];
+        const r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+        console.log(`[recive ${r_MsgType}] ${r_ThumbMediaId} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+      } else if(r_MsgType === 'voice') {
+        const r_Format = body.match(/<Format><\!\[CDATA\[(.*)\]\]><\/Format>/)[1];
+        const r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+        const r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
+        console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+      } else {
+        console.log(`[recive ${r_MsgType}] (from ${r_FromUserName} at ${r_CreateTime})`);
+        console.log(`[origin msg body] ${body}`);
+      }
 
       const s_ToUserName = r_FromUserName;
       const s_FromUserName = r_ToUserName;
+      const s_MsgType = 'text';
       const s_CreateTime = parseInt(Date.now()/1000);
       var s_Content = '';
       
@@ -81,11 +103,11 @@ function wxmsg(req, res) {
         console.log(`[send text] ${s_Content}`);
         var msg = `
           <xml>
-            <ToUserName><![CDATA[${FromUserName}]]></ToUserName>
-            <FromUserName><![CDATA[${ToUserName}]]></FromUserName>
-            <CreateTime>${CreateTime}</CreateTime>
-            <MsgType><![CDATA[text]]></MsgType>
-            <Content><![CDATA[${Content}]]></Content>
+            <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
+            <FromUserName><![CDATA[${s_FromUserName}]]></FromUserName>
+            <CreateTime>${s_CreateTime}</CreateTime>
+            <MsgType><![CDATA[${s_MsgType}]]></MsgType>
+            <Content><![CDATA[${s_Content}]]></Content>
           </xml>`;
         res.end(msg);
       });
