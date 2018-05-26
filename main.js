@@ -45,7 +45,6 @@ function checkSignature(req, res) {
   // 将 token/timestamp/nonce 三个参数进行字典序排序
   const tmpArr = [token, timestamp, nonce];
   const tmpStr = sha1(tmpArr.sort().join(''));
-  console.log('Sha1 String: ', tmpStr);
   // 验证排序并加密后的字符串与 signature 是否相等
   if (tmpStr === signature) {
     wxmsg(req, res);
@@ -57,30 +56,37 @@ function checkSignature(req, res) {
 
 function wxmsg(req, res) {
   if (req.method == 'POST') {
-    console.log("POST");
     var body = '';
     req.on('data', function (data) {
       body += data;
     });
     req.on('end', function () {
-      const ToUserName = body.match(/<ToUserName><\!\[CDATA\[(.*)\]\]><\/ToUserName>/)[1];
-      const FromUserName = body.match(/<FromUserName><\!\[CDATA\[(.*)\]\]><\/FromUserName>/)[1];
-      const CreateTime = parseInt(Date.now()/1000);
+      const r_ToUserName = body.match(/<ToUserName><\!\[CDATA\[(.*)\]\]><\/ToUserName>/)[1];
+      const r_FromUserName = body.match(/<FromUserName><\!\[CDATA\[(.*)\]\]><\/FromUserName>/)[1];
+      const r_Content = body.match(/<Content><\!\[CDATA\[(.*)\]\]><\/Content>/)[1];
+      const r_CreateTime = body.match(/<CreateTime><\!\[CDATA\[(.*)\]\]><\/CreateTime>/)[1];
+
+      console.log(`[recive text] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
+
+      const s_ToUserName = r_FromUserName;
+      const s_FromUserName = r_ToUserName;
+      const s_CreateTime = parseInt(Date.now()/1000);
+      var s_Content = '';
+      
       const fortune = spawn('fortune');
-      var Content = '';
       fortune.stdout.on('data', (data) => {
-        Content += data;
+        s_Content += data;
       });
       fortune.on('close', (code) => {
-        console.log(Content);
+        console.log(`[send text] ${s_Content}`);
         var msg = `
-        <xml>
-          <ToUserName><![CDATA[${FromUserName}]]></ToUserName>
-          <FromUserName><![CDATA[${ToUserName}]]></FromUserName>
-          <CreateTime>${CreateTime}</CreateTime>
-          <MsgType><![CDATA[text]]></MsgType>
-          <Content><![CDATA[${Content}]]></Content>
-        </xml>`;
+          <xml>
+            <ToUserName><![CDATA[${FromUserName}]]></ToUserName>
+            <FromUserName><![CDATA[${ToUserName}]]></FromUserName>
+            <CreateTime>${CreateTime}</CreateTime>
+            <MsgType><![CDATA[text]]></MsgType>
+            <Content><![CDATA[${Content}]]></Content>
+          </xml>`;
         res.end(msg);
       });
     });
