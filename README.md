@@ -4,5 +4,6 @@ a simple wechat robot write with nodejs
 ## How to use
 ```
 apt install fortune
+apt install translate-shell
 node main.js
 ```

@@ -79,9 +79,9 @@ function wxmsg(req, res) {
           var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
           if (escape(r_Content).indexOf("%u") < 0) {
-            cmd = spawn('trans', ['-b', ':en', r_Content]);
+            cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
           } else {
-            cmd = spawn('trans', ['-b', ':zh-CN', r_Content]);
+            cmd = spawn('trans', ['-b', ':en', r_Content]);
           }
           break;
         case 'image':
@@ -103,9 +103,9 @@ function wxmsg(req, res) {
           var r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
           if (escape(r_Recognition).indexOf("%u") < 0) {
-            cmd = spawn('trans', ['-b', ':en', r_Recognition]);
+            cmd = spawn('trans', ['-b', ':zh_CN', r_Recognition]);
           } else {
-            cmd = spawn('trans', ['-b', ':zh-CN', r_Recognition]);
+            cmd = spawn('trans', ['-b', ':en', r_Recognition]);
           }
           break;
         case 'event':
