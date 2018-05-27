@@ -71,30 +71,18 @@ function wxmsg(req, res) {
       const s_MsgType = 'text';
       const s_CreateTime = parseInt(Date.now()/1000);
       var s_Content = '';
+      var cmd = spawn('fortune');
 
       switch (r_MsgType) {
         case 'text':
           var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
-          var r_Content = body.match(/<Content><\!\[CDATA\[(.*)\]\m]><\/Content>/)[1];
+          var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
-
-          const trans = spawn('trans', ['-b', ':zh-CN', r_Content])
-          trans.stdout.on('data', (data) => {
-            s_Content += data;
-          });
-
-          trans.on('close', (code) => {
-            console.log(`[send text] ${s_Content}`);
-            var msg = `
-              <xml>
-                <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
-                <FromUserName><![CDATA[${s_FromUserName}]]></FromUserName>
-                <CreateTime>${s_CreateTime}</CreateTime>
-                <MsgType><![CDATA[${s_MsgType}]]></MsgType>
-                <Content><![CDATA[${s_Content}]]></Content>
-              </xml>`;
-            res.end(msg);
-          });
+          if (escape(r_Content).indexOf("%u") < 0) {
+            cmd = spawn('trans', ['-b', ':en', r_Content]);
+          } else {
+            cmd = spawn('trans', ['-b', ':zh-CN', r_Content]);
+          }
           break;
         case 'image':
           var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
@@ -125,12 +113,11 @@ function wxmsg(req, res) {
           console.log(`[origin msg body] ${body}`);
       }
 
-      const fortune = spawn('fortune');
-      fortune.stdout.on('data', (data) => {
+      cmd.stdout.on('data', (data) => {
         s_Content += data;
       });
 
-      fortune.on('close', (code) => {
+      cmd.on('close', (code) => {
         console.log(`[send text] ${s_Content}`);
         var msg = `
           <xml>
