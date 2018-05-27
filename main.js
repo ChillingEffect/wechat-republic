@@ -68,29 +68,34 @@ function wxmsg(req, res) {
 
       switch (r_MsgType) {
         case 'text':
-          const r_Content = body.match(/<Content><\!\[CDATA\[(.*)\]\]><\/Content>/)[1];
-          const r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+          var r_Content = body.match(/<Content><\!\[CDATA\[(.*)\]\]><\/Content>/)[1];
+          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
+          break;
         case 'image':
-          const r_PicUrl = body.match(/<PicUrl><\!\[CDATA\[(.*)\]\]><\/PicUrl>/)[1];
-          const r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
-          const r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+          var r_PicUrl = body.match(/<PicUrl><\!\[CDATA\[(.*)\]\]><\/PicUrl>/)[1];
+          var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_PicUrl} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+          break;
         case 'video':
-          const r_ThumbMediaId = body.match(/<ThumbMediaId><\!\[CDATA\[(.*)\]\]><\/ThumbMediaId>/)[1];
-          const r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
-          const r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+          var r_ThumbMediaId = body.match(/<ThumbMediaId><\!\[CDATA\[(.*)\]\]><\/ThumbMediaId>/)[1];
+          var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_ThumbMediaId} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+          break;
         case 'voice':
-          const r_Format = body.match(/<Format><\!\[CDATA\[(.*)\]\]><\/Format>/)[1];
-          const r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
-          const r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
-          const r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+          var r_Format = body.match(/<Format><\!\[CDATA\[(.*)\]\]><\/Format>/)[1];
+          var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+          var r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
+          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+          break;
         case 'event':
-          const r_Event = body.match(/<Event><\!\[CDATA\[(.*)\]\]><\/Event>/)[1];
-          const r_EventKey = body.match(/<EventKey><\!\[CDATA\[(.*)\]\]><\/EventKey>/)[1];
+          var r_Event = body.match(/<Event><\!\[CDATA\[(.*)\]\]><\/Event>/)[1];
+          var r_EventKey = body.match(/<EventKey><\!\[CDATA\[(.*)\]\]><\/EventKey>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Event} ${r_EventKey} (from ${r_FromUserName} at ${r_CreateTime})`);
+          break;
         default:
           console.log(`[recive ${r_MsgType}] (from ${r_FromUserName} at ${r_CreateTime})`);
           console.log(`[origin msg body] ${body}`);
