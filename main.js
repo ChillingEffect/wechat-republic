@@ -102,6 +102,11 @@ function wxmsg(req, res) {
           var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
           var r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+          if (escape(r_Recognition).indexOf("%u") < 0) {
+            cmd = spawn('trans', ['-b', ':en', r_Recognition]);
+          } else {
+            cmd = spawn('trans', ['-b', ':zh-CN', r_Recognition]);
+          }
           break;
         case 'event':
           var r_Event = body.match(/<Event><\!\[CDATA\[(.*)\]\]><\/Event>/)[1];
