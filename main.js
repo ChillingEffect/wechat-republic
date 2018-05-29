@@ -191,7 +191,7 @@ function wxmsg(req, res) {
       });
 
       cmd.on('close', (code) => {
-        RokidText(`${r_Content || ''} ${s_Content}`);        
+        RokidText(`${r_Content || r_Recognition || ''}. ${s_Content}`);        
         console.log(`[send text] ${s_Content}`);
         var msg = `
           <xml>
