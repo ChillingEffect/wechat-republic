@@ -1,3 +1,4 @@
+const http = require('http');
 const https = require('https');
 
 const url = "https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=wx6659b57a4d19c996&secret=6c61755bbad19cbb3cb7fbcccef40c2a";
@@ -44,14 +45,15 @@ function getIPList (accessToken) {
 
 function getMedia (accessToken) {
   const mediaId = '06TTrnlfSRWWVnYkQU0PLm65EC6JUu84Mgm6BSB7Ld5Y8rmW0MUjR2HVtwfSeYhn';
-  const url = `https://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
-  https.get(url, (res) => {
+  const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
+  http.get(url, (res) => {
     const { statusCode } = res;
     if (statusCode === 200) {
       let rawData = '';
       res.on('data', (chunk) => { rawData += chunk; });
       res.on('end', () => {
-        console.log(rawData);
+        // console.log(rawData);
+        console.log(`Get Media ${mediaId} OK!`);
       });
     }
   });

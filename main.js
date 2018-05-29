@@ -83,9 +83,7 @@ function RokidText(text){
     });
     res.on('end', function() {
       var resultObject = JSON.parse(responseString);
-      if (resultObject.ok) {
-        console.log(`[Rokid] ${resultObject.message}`)
-      }
+      console.log(`[Rokid] ${resultObject.message}`)
     });
     req.on('error', (e) => {
       console.error(e);
@@ -96,23 +94,51 @@ function RokidText(text){
   req.end();
 }
 
-// //语音消息处理
-// function yuyin(mediaId){
-// 	const accessToken = require('access_token');
-// 	//若琪原声播放
-// 	const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
-//   const body = {
-//     "type": "audio",
-//     "devices": {
-//       "sn": ROKID_SN
-//     },
-//     "data": {
-//       "url": url
-//     }
-//   };
-// 	a = http(`https://homebase.rokid.com/trigger/with/${ROKID_WEBHOOK}`, "post", body, null, array("Content-Type: application/json; charset=utf-8"));
-// 	return a["body"];
-// }
+//语音消息处理
+function RokidPlay(mediaId){
+	const accessToken = require('access_token');
+	//若琪原声播放
+	const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
+  const body = {
+    "type": "audio",
+    "devices": {
+      "sn": ROKID_SN
+    },
+    "data": {
+      "url": url
+    }
+  };
+  var bodyString = JSON.stringify(body);
+
+  var options = {
+    hostname: 'homebase.rokid.com',
+    port: 443,
+    path: `/trigger/with/${ROKID_WEBHOOK}`,
+    method: 'POST',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
+  };
+
+  var req = https.request(options, (res) => {
+    var responseString = '';
+
+    res.on('data', (data) => {
+      responseString += data;
+    });
+    res.on('end', function() {
+      var resultObject = JSON.parse(responseString);
+      console.log(`[Rokid] ${resultObject.message}`)
+    });
+    req.on('error', (e) => {
+      console.error(e);
+    });
+  });
+
+  req.write(bodyString);
+  req.end();
+}
 
 function wxmsg(req, res) {
   if (req.method == 'POST') {
@@ -183,7 +209,11 @@ function wxmsg(req, res) {
       });
 
       cmd.on('close', (code) => {
-        RokidText(`${r_Content || r_Recognition || ''}. ${s_Content}`);        
+        if (r_MediaId) {
+          RokidPlay(r_MediaId);
+        } else {
+          RokidText(`${r_Content || r_Recognition || ''}. ${s_Content}`);        
+        }
         console.log(`[send text] ${s_Content}`);
         var msg = `
           <xml>
