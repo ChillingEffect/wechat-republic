@@ -13,9 +13,7 @@ function getAccessToken() {
             res.on('end', () => {
                 try {
                     const json = JSON.parse(rawData);
-                    const accessToken = json['access_token'];
-                    console.log(`accessToken: ${accessToken}`);
-                    return accessToken;
+                    return json['access_token'];
                 } catch (e) {
                     console.error(e.message);
                     return;
@@ -29,8 +27,9 @@ function getAccessToken() {
 }
 
 var accessToken = getAccessToken();
+console.log(`accessToken: ${accessToken}`);
 
-function getIPList() {
+function getIPList(accessToken) {
     const url = `https://api.weixin.qq.com/cgi-bin/getcallbackip?access_token=${accessToken}`;
     https.get(url, (res) => {
         const { statusCode } = res;
@@ -50,8 +49,7 @@ function getIPList() {
     });
 }
 
-function getMedia(mediaId) {
-    // const mediaId = '06TTrnlfSRWWVnYkQU0PLm65EC6JUu84Mgm6BSB7Ld5Y8rmW0MUjR2HVtwfSeYhn';
+function getMedia(accessToken, mediaId) {
     const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
     http.get(url, (res) => {
         const { statusCode } = res;
@@ -59,7 +57,7 @@ function getMedia(mediaId) {
             let rawData = '';
             res.on('data', (chunk) => { rawData += chunk; });
             res.on('end', () => {
-                // console.log(rawData);
+                console.log(url);
                 console.log(`Get Media ${mediaId} OK!`);
             });
         }
