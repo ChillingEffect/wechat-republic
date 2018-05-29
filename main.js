@@ -105,7 +105,6 @@ function republic(req, res) {
         const r_FromUserName = body.match(/<FromUserName><\!\[CDATA\[(.*)\]\]><\/FromUserName>/)[1];
         const r_MsgType = body.match(/<MsgType><\!\[CDATA\[(.*)\]\]><\/MsgType>/)[1];
         const r_CreateTime = body.match(/<CreateTime>(.*)<\/CreateTime>/)[1];
-
         const s_ToUserName = r_FromUserName;
         const s_FromUserName = r_ToUserName;
         const s_MsgType = 'text';
@@ -176,7 +175,6 @@ function republic(req, res) {
         cmd.stdout.on('data', (data) => {
             s_Content += data;
         });
-
         cmd.on('close', (code) => {
             console.log(`[send text] ${s_Content}`);
             var msg = `
