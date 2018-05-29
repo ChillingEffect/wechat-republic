@@ -1,4 +1,4 @@
-const port = 3333;     // Web 服务器端口
+const port = 3333;     // 服务端口
 const token = 'adele'; // 微信公众平台服务器配置中的 Token
 const ROKID_SN = "0001121743000214";
 const ROKID_WEBHOOK = "rJTmCO9k7";
@@ -13,12 +13,12 @@ const { spawn } = require('child_process');
  *  对字符串进行sha1加密
  * @param  {string} str 需要加密的字符串
  * @return {string}     加密后的字符串
- */
+ **/
 function sha1(str) {
-  const md5sum = crypto.createHash('sha1');
-  md5sum.update(str);
-  const ciphertext = md5sum.digest('hex');
-  return ciphertext;
+    const md5sum = crypto.createHash('sha1');
+    md5sum.update(str);
+    const ciphertext = md5sum.digest('hex');
+    return ciphertext;
 }
 
 /**
@@ -31,205 +31,168 @@ function sha1(str) {
  *    2. 将三个参数字符串拼接成一个字符串进行sha1加密
  *    3. 开发者获得加密后的字符串可与signature对比，标识该请求来源于微信
  **/
- function checkSignature(req, res) {
-  const query = url.parse(req.url, true).query;
-  console.log('Request URL: ', req.url);
-  const signature = query.signature;
-  const timestamp = query.timestamp;
-  const nonce = query.nonce;
-  const echostr = query.echostr;
-  // 将 token/timestamp/nonce 三个参数进行字典序排序
-  const tmpArr = [token, timestamp, nonce];
-  const tmpStr = sha1(tmpArr.sort().join(''));
-  // 验证排序并加密后的字符串与 signature 是否相等
-  if (tmpStr === signature) {
-    wxmsg(req, res);
-  } else {
-    res.end('signature check failed');
-    console.log('Signature Check Failed');
-  }
+function checkSignature(req, res) {
+    const query = url.parse(req.url, true).query;
+    console.log('Request URL: ', req.url);
+    const signature = query.signature;
+    const timestamp = query.timestamp;
+    const nonce = query.nonce;
+    const echostr = query.echostr;
+    // 将 token/timestamp/nonce 三个参数进行字典序排序
+    const tmpArr = [token, timestamp, nonce];
+    const tmpStr = sha1(tmpArr.sort().join(''));
+    // 验证排序并加密后的字符串与 signature 是否相等
+    if (tmpStr === signature) {
+        if (req.method === 'GET') {    //Wechat Service 验证
+            res.end(echostr);
+            console.log('Signature Check Success');
+        } else {                       // handle message push
+            republic(req, res);
+        }
+    } else {
+        res.end('signature check failed');
+        console.log('Signature Check Failed');
+    }
 }
 
 // Rokid 文本消息处理
-function RokidText(text){
-	//执行若琪播放文字
-  const body = {
-    "type": "tts",
-    "devices": {
-      "sn": ROKID_SN
-    },
-    "data": {
-      "text": text
-    }
-  };
-  var bodyString = JSON.stringify(body);
+function rokidTTS(text) {
+    //执行若琪播放文字
+    const body = {
+        type: "tts",
+        devices: {
+            sn: ROKID_SN
+        },
+        data: {
+            text
+        }
+    };
+    const options = {
+        hostname: 'homebase.rokid.com',
+        port: 443,
+        path: `/trigger/with/${ROKID_WEBHOOK}`,
+        method: 'POST',
+        headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+        }
+    };
 
-  var options = {
-    hostname: 'homebase.rokid.com',
-    port: 443,
-    path: `/trigger/with/${ROKID_WEBHOOK}`,
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-  };
-
-  var req = https.request(options, (res) => {
-    var responseString = '';
-
-    res.on('data', (data) => {
-      responseString += data;
+    var req = https.request(options, (res) => {
+        var responseString = '';
+        res.on('data', (data) => {
+            responseString += data;
+        });
+        res.on('end', function () {
+            var resultObject = JSON.parse(responseString);
+            console.log(`[Rokid TTS] ${resultObject.message}`)
+        });
+        req.on('error', (e) => {
+            console.error(e);
+        });
     });
-    res.on('end', function() {
-      var resultObject = JSON.parse(responseString);
-      console.log(`[Rokid] ${resultObject.message}`)
-    });
-    req.on('error', (e) => {
-      console.error(e);
-    });
-  });
-
-  req.write(bodyString);
-  req.end();
+    req.write(JSON.stringify(body));
+    req.end();
 }
 
-//语音消息处理
-function RokidPlay(mediaId){
-	const accessToken = require('access_token').accessToken;
-	//若琪原声播放
-	const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
-  const body = {
-    "type": "audio",
-    "devices": {
-      "sn": ROKID_SN
-    },
-    "data": {
-      "url": url
-    }
-  };
-  var bodyString = JSON.stringify(body);
-
-  var options = {
-    hostname: 'homebase.rokid.com',
-    port: 443,
-    path: `/trigger/with/${ROKID_WEBHOOK}`,
-    method: 'POST',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    }
-  };
-
-  var req = https.request(options, (res) => {
-    var responseString = '';
-
-    res.on('data', (data) => {
-      responseString += data;
-    });
-    res.on('end', function() {
-      var resultObject = JSON.parse(responseString);
-      console.log(`[Rokid] ${resultObject.message}`)
-    });
-    req.on('error', (e) => {
-      console.error(e);
-    });
-  });
-
-  req.write(bodyString);
-  req.end();
-}
-
-function wxmsg(req, res) {
-  if (req.method == 'POST') {
+function republic(req, res) {
     var body = '';
     req.on('data', function (data) {
-      body += data;
+        body += data;
     });
     req.on('end', function () {
-      const r_ToUserName = body.match(/<ToUserName><\!\[CDATA\[(.*)\]\]><\/ToUserName>/)[1];
-      const r_FromUserName = body.match(/<FromUserName><\!\[CDATA\[(.*)\]\]><\/FromUserName>/)[1];
-      const r_MsgType = body.match(/<MsgType><\!\[CDATA\[(.*)\]\]><\/MsgType>/)[1];
-      const r_CreateTime = body.match(/<CreateTime>(.*)<\/CreateTime>/)[1];
+        const r_ToUserName = body.match(/<ToUserName><\!\[CDATA\[(.*)\]\]><\/ToUserName>/)[1];
+        const r_FromUserName = body.match(/<FromUserName><\!\[CDATA\[(.*)\]\]><\/FromUserName>/)[1];
+        const r_MsgType = body.match(/<MsgType><\!\[CDATA\[(.*)\]\]><\/MsgType>/)[1];
+        const r_CreateTime = body.match(/<CreateTime>(.*)<\/CreateTime>/)[1];
 
-      const s_ToUserName = r_FromUserName;
-      const s_FromUserName = r_ToUserName;
-      const s_MsgType = 'text';
-      const s_CreateTime = parseInt(Date.now()/1000);
-      var s_Content = '';
-      var cmd = spawn('fortune');
+        const s_ToUserName = r_FromUserName;
+        const s_FromUserName = r_ToUserName;
+        const s_MsgType = 'text';
+        const s_CreateTime = parseInt(Date.now() / 1000);
+        var s_Content = '';
+        var cmd = spawn('fortune');
 
-      switch (r_MsgType) {
-        case 'text':
-          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
-          var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
-          console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
-          if (escape(r_Content).indexOf("%u") < 0) {
-            cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
-          } else {
-            cmd = spawn('trans', ['-b', ':en', r_Content]);
-          }
-          break;
-        case 'image':
-          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
-          var r_PicUrl = body.match(/<PicUrl><\!\[CDATA\[(.*)\]\]><\/PicUrl>/)[1];
-          var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
-          console.log(`[recive ${r_MsgType}] ${r_PicUrl} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
-          break;
-        case 'video':
-          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
-          var r_ThumbMediaId = body.match(/<ThumbMediaId><\!\[CDATA\[(.*)\]\]><\/ThumbMediaId>/)[1];
-          var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
-          console.log(`[recive ${r_MsgType}] ${r_ThumbMediaId} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
-          break;
-        case 'voice':
-          var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
-          var r_Format = body.match(/<Format><\!\[CDATA\[(.*)\]\]><\/Format>/)[1];
-          var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
-          var r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
-          console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
-          if (escape(r_Recognition).indexOf("%u") < 0) {
-            cmd = spawn('trans', ['-b', ':zh_CN', r_Recognition]);
-          } else {
-            cmd = spawn('trans', ['-b', ':en', r_Recognition]);
-          }
-          break;
-        case 'event':
-          var r_Event = body.match(/<Event><\!\[CDATA\[(.*)\]\]><\/Event>/)[1];
-          var r_EventKey = body.match(/<EventKey><\!\[CDATA\[(.*)\]\]><\/EventKey>/)[1];
-          console.log(`[recive ${r_MsgType}] ${r_Event} ${r_EventKey} (from ${r_FromUserName} at ${r_CreateTime})`);
-          break;
-        default:
-          console.log(`[recive ${r_MsgType}] (from ${r_FromUserName} at ${r_CreateTime})`);
-          console.log(`[origin msg body] ${body}`);
-      }
-
-      cmd.stdout.on('data', (data) => {
-        s_Content += data;
-      });
-
-      cmd.on('close', (code) => {
-        if (r_MediaId) {
-          RokidPlay(r_MediaId);
-        } else {
-          RokidText(`${r_Content || r_Recognition || ''}. ${s_Content}`);        
+        switch (r_MsgType) {
+            case 'text':
+                var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+                var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
+                if (escape(r_Content).indexOf("%u") < 0) {
+                    cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
+                } else {
+                    cmd = spawn('trans', ['-b', ':en', r_Content]);
+                }
+                console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
+                break;
+            case 'image':
+                var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+                var r_PicUrl = body.match(/<PicUrl><\!\[CDATA\[(.*)\]\]><\/PicUrl>/)[1];
+                var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+                console.log(`[recive ${r_MsgType}] ${r_PicUrl} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+                break;
+            case 'video':
+                var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+                var r_ThumbMediaId = body.match(/<ThumbMediaId><\!\[CDATA\[(.*)\]\]><\/ThumbMediaId>/)[1];
+                var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+                console.log(`[recive ${r_MsgType}] ${r_ThumbMediaId} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+                break;
+            case 'voice':
+                var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
+                var r_Format = body.match(/<Format><\!\[CDATA\[(.*)\]\]><\/Format>/)[1];
+                var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
+                var r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
+                if (escape(r_Recognition).indexOf("%u") < 0) {
+                    cmd = spawn('trans', ['-b', ':zh_CN', r_Recognition]);
+                } else {
+                    cmd = spawn('trans', ['-b', ':en', r_Recognition]);
+                }
+                console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
+                break;
+            case 'link':
+                var r_Title = body.match(/<Title><\!\[CDATA\[(.*)\]\]><\/Title>/)[1];
+                var r_Description = body.match(/<Description><\!\[CDATA\[(.*)\]\]><\/Description>/)[1];
+                var r_Url =body.match(/<Url><\!\[CDATA\[(.*)\]\]><\/Url>/)[1];
+                console.log(`[recive ${r_MsgType}] ${r_Title} ${r_Url} (from ${r_FromUserName} at ${r_CreateTime})`);
+            case 'event':
+                var r_Event = body.match(/<Event><\!\[CDATA\[(.*)\]\]><\/Event>/)[1];
+                var r_EventKey = body.match(/<EventKey><\!\[CDATA\[(.*)\]\]><\/EventKey>/)[1];
+                console.log(`[recive ${r_MsgType}] ${r_Event} ${r_EventKey} (from ${r_FromUserName} at ${r_CreateTime})`);
+                break;
+            default:
+                console.log(`[recive ${r_MsgType}] (from ${r_FromUserName} at ${r_CreateTime})`);
+                console.log(`[origin msg body] ${body}`);
         }
-        console.log(`[send text] ${s_Content}`);
-        var msg = `
-          <xml>
-            <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
-            <FromUserName><![CDATA[${s_FromUserName}]]></FromUserName>
-            <CreateTime>${s_CreateTime}</CreateTime>
-            <MsgType><![CDATA[${s_MsgType}]]></MsgType>
-            <Content><![CDATA[${s_Content}]]></Content>
-          </xml>`;
-        res.end(msg);
-      });
+        
+        if (r_Content) {
+            rokidTTS(`${r_Content}. ${s_Content}`);
+        } else if (r_Recognition) {
+            rokidTTS(`${r_Recognition}. ${s_Content}`);
+        } else if (r_Title) {
+            rokidTTS(`${r_Title}. ${r_Description}`);
+        } else {
+            rokidTTS(s_Content);
+        }
+
+        cmd.stdout.on('data', (data) => {
+            s_Content += data;
+        });
+
+        cmd.on('close', (code) => {
+            console.log(`[send text] ${s_Content}`);
+            var msg = `
+                <xml>
+                    <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
+                    <FromUserName><![CDATA[${s_FromUserName}]]></FromUserName>
+                    <CreateTime>${s_CreateTime}</CreateTime>
+                    <MsgType><![CDATA[${s_MsgType}]]></MsgType>
+                    <Content><![CDATA[${s_Content}]]></Content>
+                </xml>`;
+            res.end(msg);
+        });
     });
-  }
 }
 
 const server = http.createServer(checkSignature)
 server.listen(port, () => {
-  console.log(`Server is runnig ar port ${port}`);
+    console.log(`Server is runnig ar port ${port}`);
 });
