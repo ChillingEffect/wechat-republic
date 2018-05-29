@@ -69,6 +69,6 @@ function getMedia (mediaId) {
 module.exports = {
   accessToken,
   getAccessToken,
-  getIpList,
+  getIPList,
   getMedia
 }

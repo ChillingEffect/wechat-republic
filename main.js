@@ -96,7 +96,7 @@ function RokidText(text){
 
 //语音消息处理
 function RokidPlay(mediaId){
-	const accessToken = require('access_token').accessToken;
+	const accessToken = require('./accessToken.js').accessToken;
 	//若琪原声播放
 	const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
   const body = {
@@ -209,11 +209,12 @@ function wxmsg(req, res) {
       });
 
       cmd.on('close', (code) => {
-        if (r_MediaId) {
+        /*if (r_MediaId) {
           RokidPlay(r_MediaId);
         } else {
           RokidText(`${r_Content || r_Recognition || ''}. ${s_Content}`);        
-        }
+        }*/
+        RokidText(`${r_Content || r_Recognition || ''}. ${s_Content}`);        
         console.log(`[send text] ${s_Content}`);
         var msg = `
           <xml>
