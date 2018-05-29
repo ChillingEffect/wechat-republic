@@ -116,7 +116,7 @@ function republic(req, res) {
             case 'text':
                 var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
                 var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
-                if (escape(r_Content).indexOf("%u") < 0) {
+                if (/^[a-zA-Z0-9 .,]+$/.test(r_Content)) {
                     cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
                 } else {
                     cmd = spawn('trans', ['-b', ':en', r_Content]);
@@ -140,11 +140,7 @@ function republic(req, res) {
                 var r_Format = body.match(/<Format><\!\[CDATA\[(.*)\]\]><\/Format>/)[1];
                 var r_MediaId = body.match(/<MediaId><\!\[CDATA\[(.*)\]\]><\/MediaId>/)[1];
                 var r_Recognition = body.match(/<Recognition><\!\[CDATA\[(.*)\]\]><\/Recognition>/)[1];
-                if (escape(r_Recognition).indexOf("%u") < 0) {
-                    cmd = spawn('trans', ['-b', ':zh_CN', r_Recognition]);
-                } else {
-                    cmd = spawn('trans', ['-b', ':en', r_Recognition]);
-                }
+                cmd = spawn('trans', ['-b', ':en', r_Recognition]);
                 console.log(`[recive ${r_MsgType}] ${r_Recognition} ${r_Format} ${r_MediaId} (from ${r_FromUserName} at ${r_CreateTime})`);
                 break;
             case 'link':
