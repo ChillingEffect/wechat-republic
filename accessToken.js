@@ -12,6 +12,7 @@ https.get(url, (res) => {
         const accessToken = json['access_token'];
         console.log(accessToken);
         getIPList(accessToken);
+        getMedia(accessToken);        
       } catch (e) {
         console.error(e.message);
       }
@@ -38,5 +39,20 @@ function getIPList (accessToken) {
         }
       });
     }
-  })
+  });
+}
+
+function getMedia (accessToken) {
+  const mediaId = '06TTrnlfSRWWVnYkQU0PLm65EC6JUu84Mgm6BSB7Ld5Y8rmW0MUjR2HVtwfSeYhn';
+  const url = `https://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
+  https.get(url, (res) => {
+    const { statusCode } = res;
+    if (statusCode === 200) {
+      let rawData = '';
+      res.on('data', (chunk) => { rawData += chunk; });
+      res.on('end', () => {
+        console.log(rawData);
+      });
+    }
+  });
 }

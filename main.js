@@ -1,22 +1,13 @@
-/**
- * 整个验证步骤分为三步
- *    1. 将token、timestamp、nonce三个参数进行字典序排序
- *    2. 将三个参数字符串拼接成一个字符串进行sha1加密
- *    3. 开发者获得加密后的字符串可与signature对比，标识该请求来源于微信
- **/
-
+const port = 3333;     // Web 服务器端口
+const token = 'adele'; // 微信公众平台服务器配置中的 Token
+const ROKID_SN = "0001121743000214";
+const ROKID_WEBHOOK = "rJTmCO9k7";
 
 const http = require('http');
 const https = require('https');
 const url = require('url');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
-
-// Web 服务器端口
-const port = 3333;
-// 微信公众平台服务器配置中的 Token
-const token = 'adele';
-
 
 /**
  *  对字符串进行sha1加密
@@ -35,8 +26,12 @@ function sha1(str) {
  * @param  {object} req http 请求
  * @param  {object} res http 响应
  * @return {object}     验证结果
- */
-function checkSignature(req, res) {
+ * 整个验证步骤分为三步
+ *    1. 将token、timestamp、nonce三个参数进行字典序排序
+ *    2. 将三个参数字符串拼接成一个字符串进行sha1加密
+ *    3. 开发者获得加密后的字符串可与signature对比，标识该请求来源于微信
+ **/
+ function checkSignature(req, res) {
   const query = url.parse(req.url, true).query;
   console.log('Request URL: ', req.url);
   const signature = query.signature;
@@ -55,9 +50,6 @@ function checkSignature(req, res) {
   }
 }
 
-const ROKID_SN = "0001121743000214";
-const ROKID_WEBHOOK = "rJTmCO9k7";
-	
 // Rokid 文本消息处理
 function RokidText(text){
 	//执行若琪播放文字
