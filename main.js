@@ -7,6 +7,7 @@
 
 
 const http = require('http');
+const https = require('https');
 const url = require('url');
 const crypto = require('crypto');
 const { spawn } = require('child_process');
@@ -54,6 +55,71 @@ function checkSignature(req, res) {
   }
 }
 
+const ROKID_SN = "0001121743000214";
+const ROKID_WEBHOOK = "rJTmCO9k7";
+	
+// Rokid 文本消息处理
+function RokidText(text){
+	//执行若琪播放文字
+  const body = {
+    "type": "tts",
+    "devices": {
+      "sn": ROKID_SN
+    },
+    "data": {
+      "text": text
+    }
+  };
+  var bodyString = JSON.stringify(body);
+
+  var options = {
+    hostname: 'homebase.rokid.com',
+    port: 443,
+    path: `/trigger/with/${ROKID_WEBHOOK}`,
+    method: 'POST',
+    headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Content-Length': bodyString.length
+      }
+  };
+
+  var req = https.request(options, (res) => {
+    var responseString = '';
+
+    res.on('data', (data) => {
+      responseString += data;
+    });
+    res.on('end', function() {
+      var resultObject = JSON.parse(responseString);
+      console.log('-----ROKID resBody-----', resultObject);
+    });
+    req.on('error', (e) => {
+      console.error(e);
+    });
+  });
+
+  req.write(bodyString);
+  req.end();
+}
+
+// //语音消息处理
+// function yuyin(mediaId){
+// 	const accessToken = require('access_token');
+// 	//若琪原声播放
+// 	const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
+//   const body = {
+//     "type": "audio",
+//     "devices": {
+//       "sn": ROKID_SN
+//     },
+//     "data": {
+//       "url": url
+//     }
+//   };
+// 	a = http(`https://homebase.rokid.com/trigger/with/${ROKID_WEBHOOK}`, "post", body, null, array("Content-Type: application/json; charset=utf-8"));
+// 	return a["body"];
+// }
+
 function wxmsg(req, res) {
   if (req.method == 'POST') {
     var body = '';
@@ -78,6 +144,7 @@ function wxmsg(req, res) {
           var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
           var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
+          RokidText(r_Content);
           if (escape(r_Content).indexOf("%u") < 0) {
             cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
           } else {
