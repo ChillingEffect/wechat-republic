@@ -176,6 +176,7 @@ function republic(req, res) {
             s_Content += data;
         });
         cmd.on('close', (code) => {
+            s_Content = s_Content.replace(/\n$/, '');
             console.log(`[send text] ${s_Content}`);
             var msg = `
                 <xml>
