@@ -78,9 +78,9 @@ function RokidText(text){
     path: `/trigger/with/${ROKID_WEBHOOK}`,
     method: 'POST',
     headers: {
-        'Content-Type': 'application/json; charset=utf-8',
-        'Content-Length': bodyString.length
-      }
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    }
   };
 
   var req = https.request(options, (res) => {
@@ -91,7 +91,9 @@ function RokidText(text){
     });
     res.on('end', function() {
       var resultObject = JSON.parse(responseString);
-      console.log('-----ROKID resBody-----', resultObject);
+      if (resultObject.ok) {
+        console.log(`[Rokid] ${resultObject.message}`)
+      }
     });
     req.on('error', (e) => {
       console.error(e);
@@ -144,7 +146,6 @@ function wxmsg(req, res) {
           var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
           var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
           console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
-          RokidText(r_Content);
           if (escape(r_Content).indexOf("%u") < 0) {
             cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
           } else {
@@ -190,6 +191,7 @@ function wxmsg(req, res) {
       });
 
       cmd.on('close', (code) => {
+        RokidText(`${r_Content || ''} ${s_Content}`);        
         console.log(`[send text] ${s_Content}`);
         var msg = `
           <xml>
