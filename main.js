@@ -96,7 +96,7 @@ function RokidText(text){
 
 //语音消息处理
 function RokidPlay(mediaId){
-	const accessToken = require('access_token');
+	const accessToken = require('access_token').accessToken;
 	//若琪原声播放
 	const url = `http://file.api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
   const body = {
