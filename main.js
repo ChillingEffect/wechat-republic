@@ -117,7 +117,7 @@ function republic(req, res) {
                 var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
                 var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
                 if (/^[a-zA-Z0-9 .,]+$/.test(r_Content)) {
-                    cmd = spawn('trans', ['-b', ':zh_CN', r_Content]);
+                    cmd = spawn('trans', ['-b', ':zh', r_Content]);
                 } else {
                     cmd = spawn('trans', ['-b', ':en', r_Content]);
                 }
@@ -157,16 +157,6 @@ function republic(req, res) {
                 console.log(`[recive ${r_MsgType}] (from ${r_FromUserName} at ${r_CreateTime})`);
                 console.log(`[origin msg body] ${body}`);
         }
-        
-        if (r_Content) {
-            rokidTTS(`${r_Content}. ${s_Content}`);
-        } else if (r_Recognition) {
-            rokidTTS(`${r_Recognition}. ${s_Content}`);
-        } else if (r_Title) {
-            rokidTTS(`${r_Title}. ${r_Description}`);
-        } else {
-            rokidTTS(s_Content);
-        }
 
         cmd.stdout.on('data', (data) => {
             s_Content += data;
@@ -174,6 +164,17 @@ function republic(req, res) {
         cmd.on('close', (code) => {
             s_Content = s_Content.replace(/\n$/, '');
             console.log(`[send text] ${s_Content}`);
+            
+            if (r_Content) {
+                rokidTTS(`${r_Content}. ${s_Content}`);
+            } else if (r_Recognition) {
+                rokidTTS(`${r_Recognition}. ${s_Content}`);
+            } else if (r_Title) {
+                rokidTTS(`${r_Title}. ${r_Description}`);
+            } else {
+                rokidTTS(s_Content);
+            }
+            
             var msg = `
                 <xml>
                     <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
