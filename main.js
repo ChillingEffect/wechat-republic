@@ -163,6 +163,9 @@ function republic(req, res) {
         });
         cmd.on('close', (code) => {
             s_Content = s_Content.replace(/\n$/, '');
+            if(!s_Content) {
+                s_Content = "Sorry I can not translate it.";
+            }
             console.log(`[send text] ${s_Content}`);
             
             if (r_Content) {
