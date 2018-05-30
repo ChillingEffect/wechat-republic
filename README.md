@@ -1,9 +1,13 @@
 # wechat-republic
-a simple wechat robot write with nodejs
+A simple wechat translate robot write with nodejs(ES2018).
+
+He can translate any language(text or voice) to Chinese. If you send anything else he will give you a fortune back.
+
+One more thing, he can control your Rokid(a smart voice control robot) speak the message out.
 
 ## How to use
 ```
 apt install fortune
 apt install translate-shell
-node main.js
+node --experimental-modules main.js
 ```

@@ -170,11 +170,11 @@ function republic(req, res) {
             console.log(`[send text] ${s_Content}`);
             
             if (r_Content) {
-                rokidTTS(`${r_Content}. ${s_Content}`);
+                rokidTTS(`<speak>${r_Content}<break time="1s"/>${s_Content}</speak>`);
             } else if (r_Recognition) {
-                rokidTTS(`${r_Recognition}. ${s_Content}`);
+                rokidTTS(`<speak>${r_Recognition}<break time="1s"/>${s_Content}</speak>`);
             } else if (r_Title) {
-                rokidTTS(`${r_Title}. ${r_Description}`);
+                rokidTTS(`<speak>${r_Title}<break time="1s"/> ${r_Description}</speak>`);
             } else {
                 rokidTTS(s_Content);
             }
@@ -197,4 +197,4 @@ server.listen(PORT, () => {
     console.log(`Server is runnig ar port ${PORT}`);
 });
 
-getAccessToken.then(token => console.log(token));
+getAccessToken().then(token => console.log(`access_token: ${token}`));
