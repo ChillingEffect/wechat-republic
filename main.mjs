@@ -1,24 +1,29 @@
-const port = 3333;     // 服务端口
-const token = 'adele'; // 微信公众平台服务器配置中的 Token
+import http from 'http';
+import https from 'https';
+import url from 'url';
+import util from 'util';
+import { spawn, exec } from 'child_process';
+import getAccessToken from './accessToken.mjs';
+
+const PORT = 3333;     // 服务端口
+const WX_TOKEN = 'adele'; // 微信公众平台服务器配置中的 Token
 const ROKID_SN = "0001121743000214";
 const ROKID_WEBHOOK = "rJTmCO9k7";
-
-const http = require('http');
-const https = require('https');
-const url = require('url');
-const crypto = require('crypto');
-const { spawn } = require('child_process');
 
 /**
  *  对字符串进行sha1加密
  * @param  {string} str 需要加密的字符串
  * @return {string}     加密后的字符串
  **/
-function sha1(str) {
-    const md5sum = crypto.createHash('sha1');
-    md5sum.update(str);
-    const ciphertext = md5sum.digest('hex');
-    return ciphertext;
+const exec_promisify = util.promisify(exec);
+async function sha1(str) {
+    var cipher = '';
+    const { stdout, stderr } = await exec(`echo ${str} | sha1sum`);
+    if (stderr) {
+        console.log(stderr);
+    } else {
+        return stdout;
+    }
 }
 
 /**
@@ -39,7 +44,7 @@ function checkSignature(req, res) {
     const nonce = query.nonce;
     const echostr = query.echostr;
     // 将 token/timestamp/nonce 三个参数进行字典序排序
-    const tmpArr = [token, timestamp, nonce];
+    const tmpArr = [WX_TOKEN, timestamp, nonce];
     const tmpStr = sha1(tmpArr.sort().join(''));
     // 验证排序并加密后的字符串与 signature 是否相等
     if (tmpStr === signature) {
@@ -191,7 +196,8 @@ function republic(req, res) {
     });
 }
 
-const server = http.createServer(checkSignature)
-server.listen(port, () => {
-    console.log(`Server is runnig ar port ${port}`);
+const server = http.createServer(checkSignature);
+server.listen(PORT, () => {
+    console.log(`Server is runnig ar port ${PORT}`);
+    console.log(getAccessToken());
 });
