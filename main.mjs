@@ -1,8 +1,8 @@
+import url from 'url';
 import http from 'http';
 import https from 'https';
-import url from 'url';
-import util from 'util';
-import { spawn, exec } from 'child_process';
+import crypto from 'crypto';
+import { spawn } from 'child_process';
 import getAccessToken from './accessToken.mjs';
 
 const PORT = 3333;     // 服务端口
@@ -15,15 +15,11 @@ const ROKID_WEBHOOK = "rJTmCO9k7";
  * @param  {string} str 需要加密的字符串
  * @return {string}     加密后的字符串
  **/
-const exec_promisify = util.promisify(exec);
-async function sha1(str) {
-    var cipher = '';
-    const { stdout, stderr } = await exec(`echo ${str} | sha1sum`);
-    if (stderr) {
-        console.log(stderr);
-    } else {
-        return stdout;
-    }
+function sha1(str) {
+    var sha1sum = crypto.createHash('sha1');
+    sha1sum.update(str);
+    str = sha1sum.digest('hex');
+    return str;
 }
 
 /**
@@ -199,5 +195,6 @@ function republic(req, res) {
 const server = http.createServer(checkSignature);
 server.listen(PORT, () => {
     console.log(`Server is runnig ar port ${PORT}`);
-    console.log(getAccessToken());
 });
+
+getAccessToken.then(token => console.log(token));

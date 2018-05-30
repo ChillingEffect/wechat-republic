@@ -6,26 +6,25 @@ const SECRET = '6c61755bbad19cbb3cb7fbcccef40c2a';
 
 export default function getAccessToken() {
     const url = `https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=${APPID}&secret=${SECRET}`;
-    https.get(url, (res) => {
-        const { statusCode } = res;
-        let rawData = '';
-        res.on('data', (chunk) => { rawData += chunk; });
-        res.on('end', () => {
-            try {
+    return new Promise( (resolve, reject) => {
+        https.get(url, (res) => {
+            const { statusCode } = res;
+            let rawData = '';
+            res.on('data', (chunk) => { rawData += chunk; });
+            res.on('end', () => {
                 const json = JSON.parse(rawData);
-		if (json.access_token) {
-                    return json.access_token;
-		} else {
+                if (json.access_token) {
+                    resolve(json.access_token);
+                } else {
                     console.log(`${json.errcode}: ${json.errmsg}`);
-		}
-            } catch (e) {
-                console.error(e.message);
-                return;
-            }
+                    reject(json);
+                    return;
+                }
+            });
+        }).on('error', (e) => {
+            reject(e);
+            return;
         });
-    }).on('error', (e) => {
-        console.error(e);
-        return;
     });
 }
 
