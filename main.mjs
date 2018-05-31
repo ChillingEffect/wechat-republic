@@ -117,7 +117,7 @@ function republic(req, res) {
             case 'text':
                 var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
                 var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
-                if (/^[a-zA-Z0-9 .,]+$/.test(r_Content)) {
+                if (/^[a-zA-Z0-9 .,\n]+$/.test(r_Content)) {
                     cmd = spawn('trans', ['-b', ':zh', r_Content]);
                 } else {
                     cmd = spawn('trans', ['-b', ':en', r_Content]);
