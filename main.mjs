@@ -151,8 +151,8 @@ function republic(req, res) {
                 console.log(`[recive ${r_MsgType}] ${r_Title} ${r_Url} (from ${r_FromUserName} at ${r_CreateTime})`);
             case 'event':
                 var r_Event = body.match(/<Event><\!\[CDATA\[(.*)\]\]><\/Event>/)[1];
-                var r_EventKey = body.match(/<EventKey><\!\[CDATA\[(.*)\]\]><\/EventKey>/)[1];
-                console.log(`[recive ${r_MsgType}] ${r_Event} ${r_EventKey} (from ${r_FromUserName} at ${r_CreateTime})`);
+                // var r_EventKey = body.match(/<EventKey><\!\[CDATA\[(.*)\]\]><\/EventKey>/)[1];
+                console.log(`[recive ${r_MsgType}] ${r_Event} (from ${r_FromUserName} at ${r_CreateTime})`);
                 break;
             default:
                 console.log(`[recive ${r_MsgType}] (from ${r_FromUserName} at ${r_CreateTime})`);
