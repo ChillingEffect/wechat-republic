@@ -117,10 +117,10 @@ function republic(req, res) {
             case 'text':
                 var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
                 var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
-                if (/^[a-zA-Z0-9 '.,\n]+$/.test(r_Content)) {
-                    cmd = spawn('trans', ['-b', ':zh', r_Content]);
-                } else {
+                if (/[\u4E00-\u9FA5\uF900-\uFA2D]/.test(r_Content)) {
                     cmd = spawn('trans', ['-b', ':en', r_Content]);
+                } else {
+                    cmd = spawn('trans', ['-b', ':zh', r_Content]);
                 }
                 console.log(`[recive ${r_MsgType}] ${r_Content} (from ${r_FromUserName} at ${r_CreateTime})`);
                 break;
