@@ -54,6 +54,7 @@ function checkSignature(req, res) {
         res.end('signature check failed');
         console.log('Signature Check Failed');
     }
+    req.on('error', e => console.log(e));
 }
 
 // Rokid 文本消息处理
@@ -88,10 +89,8 @@ function rokidTTS(text) {
             var resultObject = JSON.parse(responseString);
             console.log(`[Rokid TTS] ${resultObject.message}`)
         });
-        req.on('error', (e) => {
-            console.error(e);
-        });
     });
+    req.on('error', e => console.error(e));
     req.write(JSON.stringify(body));
     req.end();
 }
