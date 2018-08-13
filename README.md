@@ -1,5 +1,5 @@
-# wechat-republic
-A simple wechat translate robot write with nodejs(ES2018).
+#wechat-republic
+A simple wechat translate robot write with nodejs(ES6).
 
 He can translate any language(text or voice) to Chinese. If you send anything else he will give you a fortune back.
 
