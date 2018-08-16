@@ -2,8 +2,11 @@ import url from 'url';
 import http from 'http';
 import https from 'https';
 import crypto from 'crypto';
+import google from 'google';
 import { spawn } from 'child_process';
 import getAccessToken from './accessToken.mjs';
+
+google.resultsPerPage = 1
 
 const PORT = 3333;     // 服务端口
 const WX_TOKEN = 'adele'; // 微信公众平台服务器配置中的 Token
@@ -116,6 +119,7 @@ function republic(req, res) {
             case 'text':
                 var r_MsgId = body.match(/<MsgId>(.*)<\/MsgId>/)[1];
                 var r_Content = body.match(/<Content><\!\[CDATA\[([\s\S]*)\]\]><\/Content>/)[1];
+                
                 if (/[\u4E00-\u9FA5\uF900-\uFA2D]/.test(r_Content)) {
                     cmd = spawn('trans', ['-b', ':en', r_Content]);
                 } else {
@@ -164,10 +168,25 @@ function republic(req, res) {
         cmd.on('close', (code) => {
             s_Content = s_Content.replace(/\n$/, '');
             if(!s_Content) {
-                s_Content = "Sorry I can not translate it.";
+                console.log("[ERROR] Sorry I can not translate it.");
+            } else {
+                google(s_Content, function (googleErr, googleRes){
+                    if (googleErr) console.error(googleErr)
+                    var link = googleRes.links[0];
+                    if (link.href) s_Content += '\n' + link.title + '\n' + link.href + '\n' + link.description;
+                    var msg = `
+                        <xml>
+                             <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
+                             <FromUserName><![CDATA[${s_FromUserName}]]></FromUserName>
+                             <CreateTime>${s_CreateTime}</CreateTime>
+                             <MsgType><![CDATA[${s_MsgType}]]></MsgType>
+                             <Content><![CDATA[${s_Content}]]></Content>
+                        </xml>`;
+                    res.end(msg);
+                })
             }
-            console.log(`[send text] ${s_Content}`);
-            
+
+            /*
             if (r_Content) {
                 rokidTTS(`<speak>${r_Content}<break time="1s"/>${s_Content}</speak>`);
             } else if (r_Recognition) {
@@ -177,16 +196,7 @@ function republic(req, res) {
             } else {
                 rokidTTS(s_Content);
             }
-            
-            var msg = `
-                <xml>
-                    <ToUserName><![CDATA[${s_ToUserName}]]></ToUserName>
-                    <FromUserName><![CDATA[${s_FromUserName}]]></FromUserName>
-                    <CreateTime>${s_CreateTime}</CreateTime>
-                    <MsgType><![CDATA[${s_MsgType}]]></MsgType>
-                    <Content><![CDATA[${s_Content}]]></Content>
-                </xml>`;
-            res.end(msg);
+            */
         });
     });
 }
